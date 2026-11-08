@@ -1,0 +1,2 @@
+trial_id,first_request_count,warm_request_count,first_latency_mean_ms,first_latency_median_ms,first_latency_sd_ms,first_latency_min_ms,first_latency_max_ms,warm_latency_mean_ms,warm_latency_median_ms,warm_latency_sd_ms,mean_cycle_latency_difference_ms,mean_cycle_relative_increase_pct,http_2xx_count,http_non_2xx_count
+validation-02,5,25,6287.277,3399.546,7032.220429515418,2410.66,18842.526,1724.22804,1625.99,344.55678419667873,4563.04896,243.56993792696468,29,1
