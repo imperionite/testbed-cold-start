@@ -35,13 +35,13 @@ const API_BASE_URL = (
 const STUDENTS_ME_URL = `${API_BASE_URL}/students/me`;
 
 const SUPABASE_URL = (
-  __ENV.SUPABASE_URL || "https://crrpsqzvllxmxtswdhhz.supabase.co"
+  __ENV.SUPABASE_URL || ""
 ).replace(/\/+$/, "");
 
 const SUPABASE_ANON_KEY =
-  __ENV.SUPABASE_ANON_KEY || "sb_publishable_319NYowjmZXr4Zp-jTA1Sw_XbhaDVkf";
-const STUDENT_EMAIL = __ENV.STUDENT_EMAIL || "studentsbims1@grr.la";
-const STUDENT_PASSWORD = __ENV.STUDENT_PASSWORD || "Dev2026!";
+  __ENV.SUPABASE_ANON_KEY || "";
+const STUDENT_EMAIL = __ENV.STUDENT_EMAIL || "";
+const STUDENT_PASSWORD = __ENV.STUDENT_PASSWORD || "";
 
 const TRIAL_ID = __ENV.TRIAL_ID || "trial-01";
 
