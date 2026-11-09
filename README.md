@@ -109,7 +109,7 @@ python analyze_results.py
 Or specify input/output paths:
 
 ```bash
-python analyze_results.py --input results/trial-01.json results/trial-02.json --output-dir results
+python analyze_results.py --input results/input/trial-01.json results/input/trial-02.json --output-dir results/output
 ```
 
 The analyzer creates:
