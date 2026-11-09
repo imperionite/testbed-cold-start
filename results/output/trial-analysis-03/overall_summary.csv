@@ -1,0 +1,2 @@
+scope,first_request_count,warm_request_count,first_latency_mean_ms,first_latency_median_ms,first_latency_sd_ms,first_latency_min_ms,first_latency_max_ms,warm_latency_mean_ms,warm_latency_median_ms,warm_latency_sd_ms,mean_cycle_latency_difference_ms,mean_cycle_relative_increase_pct,http_2xx_count,http_non_2xx_count
+all_trials,5,25,3781.352,3884.962,289.0594062377144,3273.308,3992.665,1683.5556000000001,1637.883,188.96858797892838,2097.7964,124.62657679134252,30,0
