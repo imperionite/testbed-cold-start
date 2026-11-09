@@ -1,4 +1,4 @@
-# SBIMS First-Request Latency Profiling (k6 + Python)
+# SBIMS First-Request Latency Profiling
 
 This package implements the proposed **first-request latency following controlled inactivity** experiment. It is a proxy for cold-start behavior; k6 response times alone cannot prove that Deno Deploy terminated and restarted a particular instance.
 
