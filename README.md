@@ -60,7 +60,7 @@ k6 run `
   --env STUDENT_EMAIL=$env:STUDENT_EMAIL `
   --env STUDENT_PASSWORD=$env:STUDENT_PASSWORD `
   --env TRIAL_ID=trial-01 `
-  --out json=results/trial-01.json `
+  --out json=results/input/trial-01.json `
   k6/cold_start.js
 ```
 
@@ -73,7 +73,7 @@ k6 run `
   --env STUDENT_EMAIL=$env:STUDENT_EMAIL `
   --env STUDENT_PASSWORD=$env:STUDENT_PASSWORD `
   --env TRIAL_ID=trial-02 `
-  --out json=results/trial-02.json `
+  --out json=results/input/trial-02.json `
   k6/cold_start.js
 ```
 
@@ -92,7 +92,7 @@ k6 run \
   --env STUDENT_EMAIL="$STUDENT_EMAIL" \
   --env STUDENT_PASSWORD="$STUDENT_PASSWORD" \
   --env TRIAL_ID=trial-01 \
-  --out json=results/trial-01.json \
+  --out json=results/input/trial-01.json \
   k6/cold_start.js
 ```
 
