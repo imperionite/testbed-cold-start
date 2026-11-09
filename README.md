@@ -129,6 +129,5 @@ The raw k6 JSON files and `k6-summary-trial-*.json` files are retained as source
 - The first request in Cycle 1 has no in-script timestamp for the last request before the trial began. Ensure no SBIMS traffic for at least 12 minutes before starting Trial 1 and document this. For Cycles 2–5, the script records elapsed time since the previous SBIMS request.
 - The script obtains a new token directly from Supabase Auth before each cycle. This does not call the SBIMS/Deno API, but it does create activity at the Supabase Auth service.
 - The five warm requests in a cycle are sequential and may reuse the same client connection. Connection-related metrics are exported to help interpret this, but they do not isolate server startup.
-- A 12-minute idle period is based on the documented Deno Deploy inactivity window, but does not guarantee that the exact instance handling the next request was terminated. Correlate with deployment boot/startup logs if available.
-- Ten first-request observations are suitable for descriptive profiling, not strong inferential claims. Avoid treating the 50 warm requests as 50 independent cold-start samples.
-- If any request fails, retain and report it. Do not silently discard failed or unusually slow observations.
+- A 15-minute idle period is based on the documented Deno Deploy inactivity window, but does not guarantee that the exact instance handling the next request was terminated.
+- Fifteen first-request observations are suitable for descriptive profiling, not strong inferential claims. Avoid treating the 75 warm requests as 75 independent cold-start samples.
