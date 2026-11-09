@@ -1,18 +1,18 @@
 # SBIMS First-Request Latency Profiling
 
-This package implements the proposed **first-request latency following controlled inactivity** experiment. It is a proxy for cold-start behavior; k6 response times alone cannot prove that Deno Deploy terminated and restarted a particular instance.
+This package implements the proposed **proxy for cold-start behavior or first-request latency following controlled inactivity** experiment. 
 
 ## Experimental design implemented
 
 - One k6 virtual user.
-- Two trials; run the script once for each trial.
+- Three trials; run the script once for each trial.
 - Five measurement cycles per trial.
-- At least 12 minutes of inactivity before the first SBIMS request in each cycle.
+- At least 15 minutes of inactivity before the first SBIMS request in each cycle.
 - One first request followed by five sequential warm requests to the same endpoint: `/api/v1/students/me`.
 - Authentication is prepared by calling Supabase Auth directly, **not** the SBIMS API. A fresh access token is obtained before each cycle so token expiry during a roughly one-hour trial is avoided.
 - Raw k6 metric points are saved as JSON. Python consolidates request-level and cycle-level CSV files.
 
-Expected total: 10 first-request observations and 50 subsequent-request observations across two trials.
+Expected total: 15 first-request observations and 75 subsequent-request observations across three trials.
 
 ## Important checks before running
 
