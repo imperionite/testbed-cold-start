@@ -1,0 +1,1 @@
+﻿trial_id,cycle_id,request_class,request_sequence,timestamp,http_status,source_file,http_req_duration_ms,http_req_connecting_ms,http_req_tls_handshaking_ms,http_req_waiting_ms,http_req_failed,initialization_headers_present,application_initialization_age_ms,http_success

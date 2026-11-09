@@ -1,0 +1,3 @@
+﻿request_class,observations,initialization_age_observations,initialization_age_mean_ms,initialization_age_median_ms,initialization_age_sd_ms,initialization_age_min_ms,initialization_age_max_ms,headers_present_count,headers_absent_count
+first,15,15,53.333333333333336,51.0,6.862597037218351,48.0,75.0,15,0
+warm,75,75,7342.1466666666665,7281.0,2616.642224732348,3149.0,12315.0,75,0

@@ -1,133 +1,92 @@
 # SBIMS First-Request Latency Profiling
 
-This package implements the proposed **proxy for cold-start behavior or first-request latency following controlled inactivity** experiment. 
+This package implements the proposed **proxy for cold-start behavior or first-request latency following controlled inactivity** experiment.
 
 ## Experimental design implemented
 
-- One k6 virtual user.
-- Three trials; run the script once for each trial.
-- Five measurement cycles per trial.
-- At least 15 minutes of inactivity before the first SBIMS request in each cycle.
-- One first request followed by five sequential warm requests to the same endpoint: `/api/v1/students/me`.
-- Authentication is prepared by calling Supabase Auth directly, **not** the SBIMS API. A fresh access token is obtained before each cycle so token expiry during a roughly one-hour trial is avoided.
-- Raw k6 metric points are saved as JSON. Python consolidates request-level and cycle-level CSV files.
+- Target: deployed SBIMS API endpoint `GET /api/v1/students/me`.
+- Tool: k6; one virtual user; sequential requests.
+- Trials: three independent k6 executions.
+- Each trial: five cycles.
+- Each cycle: minimum 15-minute inactivity period, one first request, then five sequential warm requests.
+- A fresh access token is obtained directly from Supabase Auth after the wait and before the first SBIMS request. Token preparation does not call the SBIMS API.
+- Total expected observations: 15 first requests and 75 warm requests (90 SBIMS endpoint requests).
 
-Expected total: 15 first-request observations and 75 subsequent-request observations across three trials.
+The test measures client-observed endpoint response behavior. It does not directly measure Deno Deploy startup time or prove that a particular platform instance was terminated and restarted.
 
-## Important checks before running
+## Requirements and credentials
 
-1. Use a dedicated, active SBIMS student test account with an existing student profile.
-2. Confirm the Supabase project URL and publishable/anon key from the project's deployment configuration. Do not use a Supabase service-role key.
-3. Confirm that the account password is current and that the account is allowed to sign in directly through Supabase Auth.
-4. Run only with permission to generate traffic against the deployed SBIMS API. Avoid other SBIMS activity and automated health checks during each controlled inactivity interval.
-5. Use the same test machine and network for both trials. Record any interruptions, deployment changes, or unrelated traffic.
-6. The script waits 12 minutes **inside each cycle**. A trial therefore takes a little over 60 minutes; two trials take a little over two hours.
+- k6 installed locally.
+- Python 3.10 or later.
+- Matplotlib installed (`python -m pip install matplotlib`).
+- A dedicated SBIMS student test account with a valid profile.
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `STUDENT_EMAIL`, and `STUDENT_PASSWORD` supplied through the local shell environment. Do not commit credentials or use a service-role key.
 
-## Environment variables
+Optional k6 variables include `API_BASE_URL`, `TRIAL_ID`, `CYCLES_PER_TRIAL`, `WARM_REQUESTS`, and `IDLE_SECONDS`. Formal defaults are five cycles, five warm requests, and 900 seconds of inactivity. The script rejects waits below 900 seconds unless validation mode is explicitly enabled.
 
-The script requires:
+## Run the formal trials
 
-- `SUPABASE_URL` — Supabase project URL, e.g. `https://<project-ref>.supabase.co`.
-- `SUPABASE_ANON_KEY` — Supabase publishable/anon key (not service-role key).
-- `STUDENT_EMAIL` — dedicated student test-account email.
-- `STUDENT_PASSWORD` — that account's current password.
-
-Optional variables:
-
-- `API_BASE_URL` — defaults to `https://api.sbims.me/api/v1`.
-- `TRIAL_ID` — defaults to `trial-01`.
-- `CYCLES_PER_TRIAL` — defaults to `5`.
-- `WARM_REQUESTS` — defaults to `5`.
-- `IDLE_SECONDS` — defaults to `720`; values below 720 are rejected.
-
-Do not commit credentials to source control or paste them into the paper. Supply them through your local shell/session. k6 scripts read values passed with `--env`.
-
-## Run on Windows PowerShell
-
-Set the values in your current PowerShell session (replace placeholders locally):
-
-```powershell
-$env:SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co"
-$env:SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
-$env:STUDENT_EMAIL = "YOUR_TEST_STUDENT_EMAIL"
-$env:STUDENT_PASSWORD = "YOUR_TEST_STUDENT_PASSWORD"
-
-New-Item -ItemType Directory -Force results | Out-Null
-
-k6 run `
-  --env SUPABASE_URL=$env:SUPABASE_URL `
-  --env SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY `
-  --env STUDENT_EMAIL=$env:STUDENT_EMAIL `
-  --env STUDENT_PASSWORD=$env:STUDENT_PASSWORD `
-  --env TRIAL_ID=trial-01 `
-  --out json=results/input/trial-01.json `
-  k6/cold_start.js
-```
-
-After Trial 1 completes, run Trial 2:
-
-```powershell
-k6 run `
-  --env SUPABASE_URL=$env:SUPABASE_URL `
-  --env SUPABASE_ANON_KEY=$env:SUPABASE_ANON_KEY `
-  --env STUDENT_EMAIL=$env:STUDENT_EMAIL `
-  --env STUDENT_PASSWORD=$env:STUDENT_PASSWORD `
-  --env TRIAL_ID=trial-02 `
-  --out json=results/input/trial-02.json `
-  k6/cold_start.js
-```
-
-If you prefer a different secure way to inject environment variables, use that, but ensure k6 receives them as `--env NAME=value` values. Avoid saving passwords in scripts or repository files.
-
-## Run on macOS/Linux
-
-Export the four required environment variables in your shell, create `results/`, then run:
+From the project root, set the four required environment variables in your shell. Then run each trial separately. Example for macOS/Linux:
 
 ```bash
-mkdir -p results
+mkdir -p results/input
 
-k6 run \
-  --env SUPABASE_URL="$SUPABASE_URL" \
-  --env SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-  --env STUDENT_EMAIL="$STUDENT_EMAIL" \
-  --env STUDENT_PASSWORD="$STUDENT_PASSWORD" \
-  --env TRIAL_ID=trial-01 \
+TRIAL_ID=trial-01 k6 run \
   --out json=results/input/trial-01.json \
   k6/cold_start.js
+
+TRIAL_ID=trial-02 k6 run \
+  --out json=results/input/trial-02.json \
+  k6/cold_start.js
+
+TRIAL_ID=trial-03 k6 run \
+  --out json=results/input/trial-03.json \
+  k6/cold_start.js
 ```
 
-Repeat with `TRIAL_ID=trial-02` and output file `results/trial-02.json` for the second trial.
+The four required credentials must already be exported in the shell before running k6. On Windows PowerShell, set them as `$env:SUPABASE_URL`, `$env:SUPABASE_ANON_KEY`, `$env:STUDENT_EMAIL`, and `$env:STUDENT_PASSWORD`, then run the same three k6 commands using PowerShell line continuation if needed.
 
-## Analyze results
+Retain each raw JSON output unchanged. Record deployment changes, test-machine interruptions, and other SBIMS activity that may have occurred during the experiment.
 
-After both trials finish, from this directory run:
+## Consolidate and analyze all three trials
+
+Install Matplotlib if it is not already installed:
 
 ```bash
-python analyze_results.py
+python -m pip install matplotlib
 ```
 
-Or specify input/output paths:
+From the project root, run:
 
 ```bash
-python analyze_results.py --input results/input/trial-01.json results/input/trial-02.json --output-dir results/output
+python analysis/analyze_cold_start.py
 ```
 
-The analyzer creates:
+The script reads `results/input/trial-01.json` through `trial-03.json` and writes the following to `results/analysis/`:
 
-- `request_level.csv` — each first/warm SBIMS request, HTTP status, total duration, waiting time, connection time, and TLS handshake time when present.
-- `cycle_summary.csv` — one row per cycle, pairing its first-request latency with the average of its five warm requests.
-- `trial_summary.csv` — descriptive summaries for each trial.
-- `overall_summary.csv` — combined descriptive summary.
+- `request_level.csv` — endpoint request records, status, latency components, and initialization measurements.
+- `cycle_summary.csv` — paired first-request versus warm-request comparison for each of the 15 cycles.
+- `trial_summary.csv` — separate descriptive results for each formal trial.
+- `overall_summary.csv` — combined results across all three trials.
+- `initialization_summary.csv` — initialization-age and header-presence summary.
+- `failure_analysis.csv` — failed/non-2xx endpoint requests; contains only a header if no failures occurred.
+- `figure_01_paired_cycle_comparison.png` — first request and mean of five warm requests for each cycle.
+- `figure_02_latency_distribution.png` — successful first-request and warm-request latency distributions.
+- `figure_03_trial_mean_comparison.png` — mean latency by trial and request class.
+- `analysis_report.md` — automatically generated summary and interpretation notes.
 
-The raw k6 JSON files and `k6-summary-trial-*.json` files are retained as source evidence.
+The script checks the expected five cycles, one first request, five warm requests per cycle, request sequence numbers, and presence of controlled-wait measurements. It stops if the expected structure is incomplete. Use `--allow-incomplete` only when intentionally inspecting incomplete data; any validation issues will be listed in the report.
 
-## Interpretation cautions
+## Analysis rules and interpretation
 
-- The first request is a **cold-start candidate**, not a confirmed cold start.
-- `http_req_duration` is end-to-end HTTP request duration. It includes request sending, server waiting, and response receiving; it is not isolated Deno startup time.
-- The SBIMS `/students/me` route performs authentication and role checks and reads student/internship-related data. Therefore, observed latency includes Supabase Auth validation, profile/role checks, database queries, network conditions, and possible application initialization.
-- The first request in Cycle 1 has no in-script timestamp for the last request before the trial began. Ensure no SBIMS traffic for at least 12 minutes before starting Trial 1 and document this. For Cycles 2–5, the script records elapsed time since the previous SBIMS request.
-- The script obtains a new token directly from Supabase Auth before each cycle. This does not call the SBIMS/Deno API, but it does create activity at the Supabase Auth service.
-- The five warm requests in a cycle are sequential and may reuse the same client connection. Connection-related metrics are exported to help interpret this, but they do not isolate server startup.
-- A 15-minute idle period is based on the documented Deno Deploy inactivity window, but does not guarantee that the exact instance handling the next request was terminated.
-- Fifteen first-request observations are suitable for descriptive profiling, not strong inferential claims. Avoid treating the 75 warm requests as 75 independent cold-start samples.
+- Only records tagged for the SBIMS `students/me` endpoint are included. Supabase Auth token-preparation requests are excluded from endpoint latency calculations.
+- Successful-response latency summaries include HTTP 2xx requests with `http_req_failed=0`. Failed requests remain in the request-level data and are reported separately.
+- The primary response measure is k6 `http_req_duration` (request sending, response waiting, and response receiving). Initial connection and TLS handshake times are separate metrics and are not included in this duration.
+- `http_req_waiting` is reported as a supporting time-to-first-byte measure; it does not isolate application startup.
+- Cycle-level comparisons pair one first request with the mean of the five warm requests in that same cycle. The mean percentage increase across cycles is not the same calculation as the percentage increase based on the two pooled request means; report each with its correct label.
+- The first request is treated as a cold-start candidate following controlled inactivity. Application initialization headers/age provide supporting application-level observations, not direct proof of platform instance termination or restart.
+- Results are descriptive and apply to this endpoint and test setup. Do not interpret them as the platform's exact startup time, the capacity of the hosting platform, or the performance of the entire SBIMS system.
+
+## Evidence retention
+
+Keep the three raw files in `results/input/` unchanged. Treat generated CSV files and figures as derived analysis outputs. Retain the analysis script and its execution environment/version information with the project so the results can be regenerated.
